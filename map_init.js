@@ -1,3 +1,5 @@
+import { OsmBakeryParser } from "./modules/data/osm/osm_data_grabber.js"
+
 var cities = L.layerGroup();
 
 L.marker([39.61, -105.02]).bindPopup('This is Littleton, CO.').addTo(cities),
@@ -27,6 +29,30 @@ var baseLayers = {
 var overlays = {
     "Cities": cities
 };
+
+
+
+var bakeries_lyr = L.geoJSON().addTo(map);
+// EXAMPLE
+function get_bbox() {
+    let res_array = []
+    res_array.push(map.getBounds().getNorthEast()["lat"])
+    res_array.push(map.getBounds().getNorthEast()["lng"])
+    res_array.push(map.getBounds().getSouthWest()["lat"])
+    res_array.push(map.getBounds().getSouthWest()["lng"])
+
+    return res_array
+}
+let bbx = get_bbox()
+var osm_worker = new OsmBakeryParser(bbx[0], bbx[1], bbx[2], bbx[3])
+// FIXME: Impossible to retrieve data with promise. only top to bottm.
+var geo_datas = osm_worker.get_bakeries_from_turbo_osm();
+console.log(geo_datas)
+
+for (let elt of geo_datas["features"]) {
+    bakeries_lyr.addData(elt);
+}
+
 
 L.control.layers(baseLayers, overlays).addTo(map);
 

@@ -1,20 +1,24 @@
 // Serialize osm data to geojson
 
-import { TURBO_URL, TURBO_QUERY_START, TURBO_QUERY_END } from "./../config/config.js"
+import { TURBO_URL, TURBO_QUERY_START, TURBO_QUERY_END } from "../../../config/config.js"
 
 
 
 
 
-class OsmBakeryParser {
-    constructor(bbox_string) {
-        this.bbox_string = bbox_string;
+export class OsmBakeryParser {
+    constructor(bbox_sw_lat, bbox_sw_long, bbox_ne_lat, bbox_ne_long) {
+        this.bbox_string = this._generate_bbox_string(bbox_sw_lat, bbox_sw_long, bbox_ne_lat, bbox_ne_long);
         this.turbo_url = TURBO_URL;
         this.turbo_query_start = TURBO_QUERY_START;
         this.turbo_query_end = TURBO_QUERY_END;
     }
 
 
+    _generate_bbox_string(bbox_sw_lat, bbox_sw_long, bbox_ne_lat, bbox_ne_long){
+        let res = bbox_sw_lat + bbox_sw_long + bbox_ne_lat + bbox_ne_long;
+        return res;
+    }
 
     _serialize_turbo_res_to_geojson(turbo_res_req) {
         var geojson = {
@@ -36,13 +40,13 @@ class OsmBakeryParser {
             }
             geojson["features"].push(geojson_item)
         }
-        console.log(geojson)
+        return geojson
 
 
     }
 
 
-    async _get_bakeries_from_turbo_osm() {
+    async get_bakeries_from_turbo_osm() {
         // Download GeoJSON via Ajax
 
         // curl -d "[out:json];node[shop=bakery](45.708576787494145,4.757938385009765,45.82054524308477,4.843425750732422);out;" -H "Content-Type: application/x-www-form-urlencoded" -X POST https://overpass-api.de/api/interpreter
@@ -60,5 +64,5 @@ class OsmBakeryParser {
 
     }
 }
-var worker = new OsmBakeryParser("45.708576787494145,4.757938385009765,45.82054524308477,4.843425750732422")
-var res = worker._get_bakeries_from_turbo_osm()
+/* var worker = new OsmBakeryParser("45.708576787494145,4.757938385009765,45.82054524308477,4.843425750732422")
+var res = worker.get_bakeries_from_turbo_osm() */
