@@ -1,0 +1,2 @@
+# curl -d "node[shop=bakery](45.708576787494145,4.757938385009765,45.82054524308477,4.843425750732422);out;" -H "Content-Type: application/x-www-form-urlencoded" -X POST https://overpass-api.de/api/interpreter
+curl -d "[out:json];node[shop=bakery](45.708576787494145,4.757938385009765,45.82054524308477,4.843425750732422);out;" -H "Content-Type: application/x-www-form-urlencoded" -X POST https://overpass-api.de/api/interpreter
