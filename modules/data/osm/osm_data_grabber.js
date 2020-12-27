@@ -30,7 +30,7 @@ export class OsmBakeryParser {
                 "type": "Feature",
                 "geometry": {
                     "type": "Point",
-                    "coordinates": [elt["lat"], elt["lon"]]
+                    "coordinates": [elt["lon"], elt["lat"]]
                 },
                 "properties": {
                     "id": elt["id"],
