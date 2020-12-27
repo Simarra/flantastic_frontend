@@ -1,11 +1,19 @@
 import { OsmBakeryParser } from "./modules/data/osm/osm_data_grabber.js"
 
-var cities = L.layerGroup();
+function onLocationFound(e) {
+    var radius = e.accuracy / 2;
+    let bbox = map.getBounds();
+    console.log("coucu")
 
-L.marker([39.61, -105.02]).bindPopup('This is Littleton, CO.').addTo(cities),
-    L.marker([39.74, -104.99]).bindPopup('This is Denver, CO.').addTo(cities),
-    L.marker([39.73, -104.8]).bindPopup('This is Aurora, CO.').addTo(cities),
-    L.marker([39.77, -105.23]).bindPopup('This is Golden, CO.').addTo(cities);
+}
+
+function signal_markup_clicked(e) {
+    // Change style of clicked markup
+    // Open nav
+    // call slot for form update
+    console.log(e.layer._leaflet_id)
+    // slot_markup_clicked(e.layer)
+}
 
 
 var mbAttr = 'Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, ' +
@@ -15,24 +23,6 @@ var mbAttr = 'Map data &copy; <a href="https://www.openstreetmap.org/copyright">
 var grayscale = L.tileLayer(mbUrl, { id: 'mapbox/light-v9', tileSize: 512, zoomOffset: -1, attribution: mbAttr }),
     streets = L.tileLayer(mbUrl, { id: 'mapbox/streets-v11', tileSize: 512, zoomOffset: -1, attribution: mbAttr });
 
-var map = L.map('map', {
-    center: [39.73, -104.99],
-    zoom: 10,
-    layers: [grayscale, cities]
-});
-
-var baseLayers = {
-    "Grayscale": grayscale,
-    "Streets": streets
-};
-
-var overlays = {
-    "Cities": cities
-};
-
-
-
-var bakeries_lyr = L.geoJSON().addTo(map);
 // EXAMPLE
 function get_bbox() {
     let res_array = []
@@ -41,20 +31,64 @@ function get_bbox() {
     res_array.push(map.getBounds().getSouthWest()["lat"])
     res_array.push(map.getBounds().getSouthWest()["lng"])
 
+    console.debug("Array of bbox")
+    console.debug(res_array)
     return res_array
 }
-let bbx = get_bbox()
-var osm_worker = new OsmBakeryParser(bbx[0], bbx[1], bbx[2], bbx[3])
-// FIXME: Impossible to retrieve data with promise. only top to bottm.
-var geo_datas = osm_worker.get_bakeries_from_turbo_osm();
-console.log(geo_datas)
 
-for (let elt of geo_datas["features"]) {
-    bakeries_lyr.addData(elt);
+
+async function add_json_feat_top_map() {
+    let bbx = get_bbox()
+    var osm_worker = new OsmBakeryParser(bbx[0], bbx[1], bbx[2], bbx[3])
+    // FIXME: Impossible to retrieve data with promise. only top to bottm.
+    var geo_datas = await osm_worker.get_bakeries_from_turbo_osm();
+
+    for (let elt of geo_datas["features"]) {
+        bakeries_lyr.addData(elt);
+    }
 }
 
+var map = L.map('map', {
+    zoom: 15,
+    center: [45.70, 4.75],
+    zoomControl: false,
+    layers: [grayscale]
+});
 
-L.control.layers(baseLayers, overlays).addTo(map);
+map.on('locationfound', onLocationFound);
+
+var baseLayers = {
+    "Grayscale": grayscale,
+    "Streets": streets
+};
+
+
+
+
+// var bakeries_lyr = L.geoJSON().addTo(map);
+
+// Labelgun!
+// This is core of how Labelgun works. We must provide two functions, one
+// that hides our labels, another that shows the labels. These are essentially
+// callbacks that labelgun uses to actually show and hide our labels
+// In this instance we set the labels opacity to 0 and 1 respectively. 
+var hideLabel = function(label) { label.labelObject.style.opacity = 0; };
+var showLabel = function(label) { label.labelObject.style.opacity = 1; };
+var labelEngine = new labelgun.default(hideLabel, showLabel);
+
+
+var bakeries_lyr = L.markerClusterGroup.layerSupport([]);
+bakeries_lyr.addTo(map).on("click", signal_markup_clicked);
+
+var overlayMaps = {
+    "Boulangeries": bakeries_lyr
+};
+
+add_json_feat_top_map()
+
+
+
+// L.control.layers(baseLayers).addTo(map);
 
 
 // function geoloc_available() {
@@ -144,18 +178,6 @@ L.control.layers(baseLayers, overlays).addTo(map);
 // }
 
 
-// function onLocationFound(e) {
-//     var radius = e.accuracy / 2;
-//     L.marker(e.latlng).addTo(map);
-//     L.circle(e.latlng, radius).addTo(map);
-//     let id_not_to_get = "99999999";
-//     let latlong = _format_point_for_api(e.longitude, e.latitude);
-//     let bbox = map.getBounds();
-
-//     let bbox_ne = _format_point_for_api(bbox._northEast.lng, bbox._northEast.lat);
-//     let bbox_sw = _format_point_for_api(bbox._southWest.lng, bbox._southWest.lat);
-//     add_closest_bakeries_json(latlong, id_not_to_get, bbox_ne, bbox_sw);
-// }
 
 // function add_data_to_layer(json_to_add) {
 //     feature_group.addData(json_to_add)

@@ -3,20 +3,19 @@
 import { TURBO_URL, TURBO_QUERY_START, TURBO_QUERY_END } from "../../../config/config.js"
 
 
-
-
-
 export class OsmBakeryParser {
     constructor(bbox_sw_lat, bbox_sw_long, bbox_ne_lat, bbox_ne_long) {
-        this.bbox_string = this._generate_bbox_string(bbox_sw_lat, bbox_sw_long, bbox_ne_lat, bbox_ne_long);
+        this.bbox_string = this._generate_bbox_string( bbox_ne_lat, bbox_ne_long, bbox_sw_lat, bbox_sw_long);
         this.turbo_url = TURBO_URL;
         this.turbo_query_start = TURBO_QUERY_START;
         this.turbo_query_end = TURBO_QUERY_END;
     }
 
 
-    _generate_bbox_string(bbox_sw_lat, bbox_sw_long, bbox_ne_lat, bbox_ne_long){
-        let res = bbox_sw_lat + bbox_sw_long + bbox_ne_lat + bbox_ne_long;
+    _generate_bbox_string(bbox_ne_lat, bbox_ne_long, bbox_sw_lat, bbox_sw_long){
+        let res = bbox_ne_lat.toString().concat(",", [bbox_ne_long, bbox_sw_lat,bbox_sw_long]);
+        console.debug("BBOX string gen")
+        console.debug(res)
         return res;
     }
 
@@ -51,6 +50,7 @@ export class OsmBakeryParser {
 
         // curl -d "[out:json];node[shop=bakery](45.708576787494145,4.757938385009765,45.82054524308477,4.843425750732422);out;" -H "Content-Type: application/x-www-form-urlencoded" -X POST https://overpass-api.de/api/interpreter
         let turbo_query = this.turbo_query_start + this.bbox_string + this.turbo_query_end
+        console.debug(turbo_query)
 
         let res = await fetch(this.turbo_url,
             {
@@ -59,8 +59,8 @@ export class OsmBakeryParser {
 
             })
         let json_res = await res.json();
-        this._serialize_turbo_res_to_geojson(json_res)
-        return res
+        let gjson = this._serialize_turbo_res_to_geojson(json_res)
+        return gjson
 
     }
 }
